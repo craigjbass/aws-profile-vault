@@ -1,0 +1,7 @@
+[package]
+name = "aws-profile-vault"
+version = "0.1.0"
+authors = ["Craig J. Bass <1889973+craigjbass@users.noreply.github.com>"]
+
+[dependencies]
+clap = "*"
