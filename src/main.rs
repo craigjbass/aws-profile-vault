@@ -5,6 +5,9 @@ use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("aws-profile-vault")
+        .version("Cherrytree")
+        .author("Craig J. Bass <craig@madetech.com>")
+        .about("Let's you run scripts that use aws-profile when you only have aws-vault.")
         .arg(Arg::with_name("profile").short("p").takes_value(true).required(true).value_name("PROFILE").help("The AWS profile to use."))
         .arg(Arg::with_name("command").required(true).multiple(true))
         .get_matches();
