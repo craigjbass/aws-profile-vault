@@ -3,11 +3,11 @@ on:
     tags:
       - 'v*' 
 
-name: Rust Linux Release
+name: Rust Release
 
 jobs:
   build:
-    name: Release
+    name: Build Release Linux
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,7 +15,22 @@ jobs:
       - name: Run the tests
         run: cargo test
       - name: Build
-        run: cargo build --release
+        run: cargo build --release && mv ./target/release/aws-profile-vault ./target/release/aws-profile-vault-linux-x86_64
+      - name: Share artefact with Upload job
+        uses: actions/upload-artifact@v1
+        with:
+          name: aws-profile-vault-linux-x86_64
+          path: ./target/release/aws-profile-vault-linux-x86_64
+
+  upload:
+    name: Upload Artefacts
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Grab Linux artefact for Release
+        uses: actions/download-artifact@v1
+        with:
+          name: aws-profile-vault-linux-x86_64
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -33,6 +48,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./target/release/aws-profile-vault
+          asset_path: ./target/release/aws-profile-vault-linux-x86_64
           asset_name: aws-profile-vault-linux-x86_64
           asset_content_type: application/octet-stream
