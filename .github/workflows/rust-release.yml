@@ -6,7 +6,7 @@ on:
 name: Rust Release
 
 jobs:
-  build:
+  build_linux:
     name: Build Release Linux
     runs-on: ubuntu-latest
     steps:
@@ -21,16 +21,36 @@ jobs:
         with:
           name: aws-profile-vault-linux-x86_64
           path: ./target/release/aws-profile-vault-linux-x86_64
+    
+  build_macos:
+    name: Build Release macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Run the tests
+        run: cargo test
+      - name: Build
+        run: cargo build --release && mv ./target/release/aws-profile-vault ./target/release/aws-profile-vault-macos-x86_64
+      - name: Share artefact with Upload job
+        uses: actions/upload-artifact@v1
+        with:
+          name: aws-profile-vault-macos-x86_64
+          path: ./target/release/aws-profile-vault-macos-x86_64
 
   upload:
     name: Upload Artefacts
-    needs: build
+    needs: [build_linux, build_macos]
     runs-on: ubuntu-latest
     steps:
       - name: Grab Linux artefact for Release
         uses: actions/download-artifact@v1
         with:
           name: aws-profile-vault-linux-x86_64
+      - name: Grab macOS artefact for Release
+        uses: actions/download-artifact@v1
+        with:
+          name: aws-profile-vault-macos-x86_64
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -41,8 +61,8 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset 
+      - name: Upload Linux Release Asset
+        id: upload-linux-release-asset 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,4 +70,14 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
           asset_path: ./aws-profile-vault-linux-x86_64/aws-profile-vault-linux-x86_64
           asset_name: aws-profile-vault-linux-x86_64
+          asset_content_type: application/octet-stream
+      - name: Upload macOS Release Asset
+        id: upload-macos-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          asset_path: ./aws-profile-vault-macos-x86_64/aws-profile-vault-macos-x86_64
+          asset_name: aws-profile-vault-macos-x86_64
           asset_content_type: application/octet-stream
