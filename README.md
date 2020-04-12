@@ -1,14 +1,16 @@
 # aws-profile-vault ![Rust](https://github.com/craigjbass/aws-profile-vault/workflows/Rust/badge.svg?branch=master)
 
+This is intended as a **drop in replacement**_ish_ (you'll need aws-vault too) for `aws-profile`.
+
 #### Why?
 
 `aws-profile` is a tool that allows you to run arbitrary commands within specific aws profiles. It stores credentials in plaintext.
 
-`aws-vault` is a tool that does the same thing. It encrypts your credentials in an appropriate backend.
+`aws-vault` is a tool that does roughly the same thing. One key difference is that _it encrypts your credentials in an appropriate backend_. This feels like a good idea.
 
-Some teams have scripts that depend on aws-profile and/or aws-vault. 
+Some teams have scripts that depend on aws-profile, in order to invoke commands across a variety of AWS accounts and/or roles.
 
-This enables all team members to use aws-vault, but still execute their scripts that use aws-profile.
+This enables all team members to use `aws-vault`, but still use the legacy scripts that use `aws-profile`.
 
 ## Migrating from aws-profile
 
