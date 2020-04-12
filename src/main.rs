@@ -67,7 +67,7 @@ struct UserRequest {
     environment_profile: Option<String>
 }
 
-fn execute(runner: &mut Runner, request: UserRequest) {
+fn execute(runner: &mut dyn Runner, request: UserRequest) {
     let environment_profile = request.environment_profile;
     runner.run_command(
         format!(
@@ -80,6 +80,7 @@ fn execute(runner: &mut Runner, request: UserRequest) {
     );
 }
 
+#[allow(unused_must_use)]
 #[cfg(test)]
 mod tests {
     use super::*;
