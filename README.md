@@ -33,6 +33,8 @@ Both tools use profiles that can be configured via `~/.aws/config`.
 
 ## Running the tests
 
+The entire project is defined in `src/main.rs`, including the tests.
+
 Run `cargo test`
 
 ## Implementation Differences
