@@ -41,10 +41,6 @@ Run `cargo test`
 
 This could be implemented, but this is aws-vault's default behaviour.
 
-**The `-p` / `--profile` must be supplied.**
-
-The assumption is that most use cases require this to be set anyway.
-
 **1hr max sessions**
 
 If your abitrary command needs to run for longer than 1hr, then the token will expire.
