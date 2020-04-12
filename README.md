@@ -1,4 +1,4 @@
-# aws-profile-vault
+# aws-profile-vault ![Rust](https://github.com/craigjbass/aws-profile-vault/workflows/Rust/badge.svg?branch=master)
 
 #### Why?
 
