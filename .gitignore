@@ -5,3 +5,4 @@ Cargo.lock
 
 /target/
 **/*.rs.bk
+.integration_test#spy-data

@@ -5,10 +5,12 @@ use std::option::Option;
 use std::process::{Command, Stdio};
 use clap::{App, Arg};
 
-struct BashRunner {}
+struct BashRunner {
+    shell: &'static str
+}
 impl Runner for BashRunner {
     fn run_command(&mut self, command: String) {
-        let mut child = Command::new("bash")
+        let mut child = Command::new(self.shell)
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
@@ -30,6 +32,7 @@ fn main() {
              .short("p")
              .long("profile")
              .takes_value(true)
+             .required(true)
              .value_name("PROFILE")
              .help("The AWS profile to use. This will override the AWS_PROFILE environment variable."))
         .arg(Arg::with_name("command")
@@ -43,7 +46,7 @@ fn main() {
     };
 
     execute(
-        &mut BashRunner {},
+        &mut BashRunner { shell: "bash" },
         UserRequest {
             parameter_profile: matches.value_of("profile").map(str::to_string),
             parameter_command: matches.values_of_lossy("command"),
@@ -80,6 +83,8 @@ fn execute(runner: &mut Runner, request: UserRequest) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::{File, remove_file};
+    use std::io::prelude::*;
 
     struct RunnerSpy {
         command: Option<String>
@@ -155,5 +160,24 @@ mod tests {
                 ..Default::default()
             }
         );
+    }
+
+    #[test]
+    fn integration_test() {
+        execute(
+            &mut BashRunner { shell: "./fake_shell" },
+            UserRequest {
+                parameter_profile: Some(String::from("live")),
+                parameter_command: Some(vec!("env").into_iter().map(String::from).collect()),
+                ..Default::default()
+            }
+        );
+
+        let mut f = File::open("./.integration_test#spy-data").expect("fake_shell did not create spy data file");
+        let mut buffer = String::new();
+        f.read_to_string(&mut buffer);
+        
+        assert_eq!(buffer, String::from("-c aws-vault exec live -- env\n"));
+        remove_file("./.integration_test#spy-data");
     }
 }
