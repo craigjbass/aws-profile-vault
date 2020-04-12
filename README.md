@@ -25,6 +25,16 @@ Both tools use profiles that can be configured via `~/.aws/config`.
 1. Download this tool from github releases and symlink it as `aws-profile` on your $PATH.
 2. Use it like `aws-profile`
 
+## Compiling
+
+1. Clone the repository
+2. Ensure you have [a Rust compiler installed](https://www.rust-lang.org/tools/install)
+3. `cargo build --release`
+
+## Running the tests
+
+Run `cargo test`
+
 ## Implementation Differences
 
 **MFA tokens must be entered every time.**
