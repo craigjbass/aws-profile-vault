@@ -26,7 +26,7 @@ ARGS:
 **Step 1**
 
 - Linux: Download the appropriate [binary from releases](https://github.com/craigjbass/aws-profile-vault/releases).
-- macOS, Windows: [Compile from source](https://github.com/craigjbass/aws-profile-vault#Compiling).
+- macOS: [Compile from source](https://github.com/craigjbass/aws-profile-vault#Compiling).
 
 **Step 2**
 
