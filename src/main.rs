@@ -32,7 +32,6 @@ fn main() {
              .short("p")
              .long("profile")
              .takes_value(true)
-             .required(true)
              .value_name("PROFILE")
              .help("The AWS profile to use. This will override the AWS_PROFILE environment variable."))
         .arg(Arg::with_name("command")
