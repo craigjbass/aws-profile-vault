@@ -3,14 +3,14 @@ extern crate clap;
 use std::env;
 use std::option::Option;
 use std::process::{Command, Stdio};
-use clap::{App, Arg};
+use clap::{App, Arg, AppSettings};
 
 struct BashRunner {
-    shell: &'static str
+    shell: String
 }
 impl Runner for BashRunner {
     fn run_command(&mut self, command: String) {
-        let mut child = Command::new(self.shell)
+        let mut child = Command::new(String::clone(&self.shell))
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
@@ -28,6 +28,7 @@ fn main() {
         .version("Cherrytree")
         .author("Craig J. Bass <craig@madetech.com>")
         .about("Let's you run scripts that use aws-profile when you only have aws-vault.")
+        .setting(AppSettings::TrailingVarArg)
         .arg(Arg::with_name("profile")
              .short("p")
              .long("profile")
@@ -44,8 +45,13 @@ fn main() {
         Err(_) => None
     };
 
+    let shell = match env::var("AWS_PROFILE_VAULT_SHELL") {
+        Ok(value) => value,
+        Err(_) => String::from("bash")
+    };
+
     execute(
-        &mut BashRunner { shell: "bash" },
+        &mut BashRunner { shell: shell },
         UserRequest {
             parameter_profile: matches.value_of("profile").map(str::to_string),
             parameter_command: matches.values_of_lossy("command"),
@@ -79,11 +85,13 @@ fn execute(runner: &mut dyn Runner, request: UserRequest) {
     );
 }
 
+
 #[allow(unused_must_use)]
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs::{File, remove_file};
+    use std::process::{id};
     use std::io::prelude::*;
 
     struct RunnerSpy {
@@ -165,7 +173,7 @@ mod tests {
     #[test]
     fn integration_test() {
         execute(
-            &mut BashRunner { shell: "./fake_shell" },
+            &mut BashRunner { shell: String::from("./fake_shell") },
             UserRequest {
                 parameter_profile: Some(String::from("live")),
                 parameter_command: Some(vec!("env").into_iter().map(String::from).collect()),
@@ -173,11 +181,69 @@ mod tests {
             }
         );
 
-        let mut f = File::open("./.integration_test#spy-data").expect("fake_shell did not create spy data file");
+        let pid = id();
+        let spy_file = String::from("./.integration_test#spy-data")+&pid.to_string();
+        let mut f = File::open(
+            spy_file.clone()
+        ).expect(&spy_file.clone());
         let mut buffer = String::new();
         f.read_to_string(&mut buffer);
         
         assert_eq!(buffer, String::from("-c aws-vault exec live -- env\n"));
-        remove_file("./.integration_test#spy-data");
+        remove_file(spy_file);
+    }
+
+    #[test]
+    fn e2e_function_test() {
+        let mut child = Command::new("cargo")
+            .arg("run")
+            .arg("--")
+            .arg("--profile")
+            .arg("sandbox")
+            .arg("--")
+            .arg("env")
+            .env("AWS_PROFILE_VAULT_SHELL", "./fake_shell")
+            .spawn()
+            .expect("Failed to run aws-profile-vault");
+        
+        let pid = child.id();
+        child.wait().expect("Command failed.");
+
+        let spy_file = String::from("./.integration_test#spy-data")+&pid.to_string();
+        let mut f = File::open(
+            spy_file.clone()
+        ).expect(&spy_file.clone());
+        let mut buffer = String::new();
+        f.read_to_string(&mut buffer);
+        
+        assert_eq!(buffer, String::from("-c aws-vault exec sandbox -- env\n"));
+        remove_file(spy_file);
+    }
+
+    #[test]
+    fn e2e_function_test2() {
+        let mut child = Command::new("cargo")
+            .arg("run")
+            .arg("--")
+            .arg("--profile")
+            .arg("sandbox")
+            .arg("env")
+            .arg("--help")
+            .env("AWS_PROFILE_VAULT_SHELL", "./fake_shell")
+            .spawn()
+            .expect("Failed to run aws-profile-vault");
+        
+        let pid = child.id();
+        child.wait().expect("Command failed.");
+
+        let spy_file = String::from("./.integration_test#spy-data")+&pid.to_string();
+        let mut f = File::open(
+            spy_file.clone()
+        ).expect(&spy_file.clone());
+        let mut buffer = String::new();
+        f.read_to_string(&mut buffer);
+        
+        assert_eq!(buffer, String::from("-c aws-vault exec sandbox -- env --help\n"));
+        remove_file(spy_file);
     }
 }

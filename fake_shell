@@ -1,3 +1,3 @@
 #!/bin/sh
 
-echo $@ > .integration_test#spy-data
+echo $@ > .integration_test#spy-data$PPID
