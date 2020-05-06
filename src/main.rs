@@ -91,7 +91,6 @@ fn execute(runner: &mut dyn Runner, request: UserRequest) {
 mod tests {
     use super::*;
     use std::fs::{File, remove_file};
-    use std::process::{id};
     use std::io::prelude::*;
 
     struct RunnerSpy {
@@ -168,29 +167,6 @@ mod tests {
                 ..Default::default()
             }
         );
-    }
-
-    #[test]
-    fn integration_test() {
-        execute(
-            &mut BashRunner { shell: String::from("./fake_shell") },
-            UserRequest {
-                parameter_profile: Some(String::from("live")),
-                parameter_command: Some(vec!("env").into_iter().map(String::from).collect()),
-                ..Default::default()
-            }
-        );
-
-        let pid = id();
-        let spy_file = String::from("./.integration_test#spy-data")+&pid.to_string();
-        let mut f = File::open(
-            spy_file.clone()
-        ).expect(&spy_file.clone());
-        let mut buffer = String::new();
-        f.read_to_string(&mut buffer);
-        
-        assert_eq!(buffer, String::from("-c aws-vault exec live -- env\n"));
-        remove_file(spy_file);
     }
 
     #[test]
