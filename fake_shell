@@ -1,3 +1,5 @@
 #!/bin/sh
 
 echo $@ > .integration_test#spy-data$PPID
+wait
+
