@@ -39,13 +39,13 @@ The entire project is defined in `src/main.rs`, including the tests.
 
 Run `cargo test`
 
-## Implementation Differences
+## FAQs
 
-**MFA tokens must be entered every time.**
+**MFA tokens must be entered every time?**
 
-This could be implemented, but this is aws-vault's default behaviour.
+If you use [include_profile](https://github.com/99designs/aws-vault/blob/master/USAGE.md#include_profile) option instead of source_profile, you will find this issue goes away.
 
-**1hr max sessions**
+**1hr max sessions?**
 
 If your abitrary command needs to run for longer than 1hr, then the token will expire.
 
