@@ -3,7 +3,8 @@ extern crate clap;
 use std::env;
 use std::option::Option;
 use std::process::{Command, Stdio};
-use clap::{App, Arg, AppSettings};
+use clap::{Command as App, Arg, arg};
+
 
 struct BashRunner {
     shell: String
@@ -28,16 +29,13 @@ fn main() {
         .version("Cherrytree")
         .author("Craig J. Bass <craig@madetech.com>")
         .about("Let's you run scripts that use aws-profile when you only have aws-vault.")
-        .setting(AppSettings::TrailingVarArg)
-        .arg(Arg::with_name("profile")
-             .short("p")
+        .arg(Arg::new("profile")
+             .short('p')
              .long("profile")
-             .takes_value(true)
              .value_name("PROFILE")
              .help("The AWS profile to use. This will override the AWS_PROFILE environment variable."))
-        .arg(Arg::with_name("command")
-             .required(true)
-             .multiple(true))
+        .arg(arg!(<command> ... "commands to run")
+             .trailing_var_arg(true))
         .get_matches();
 
     let environment_profile = match env::var("AWS_PROFILE") {
@@ -53,8 +51,8 @@ fn main() {
     execute(
         &mut BashRunner { shell: shell },
         UserRequest {
-            parameter_profile: matches.value_of("profile").map(str::to_string),
-            parameter_command: matches.values_of_lossy("command"),
+            parameter_profile: matches.get_one::<String>("profile").cloned(),
+            parameter_command: matches.get_many("command").expect("`command` is required").cloned().collect(),
             environment_profile: environment_profile,
             ..Default::default()
         }
@@ -68,7 +66,7 @@ trait Runner {
 #[derive(Default)]
 struct UserRequest {
     parameter_profile: Option<String>,
-    parameter_command: Option<Vec<String>>,
+    parameter_command: Vec<String>,
     environment_profile: Option<String>
 }
 
@@ -80,7 +78,7 @@ fn execute(runner: &mut dyn Runner, request: UserRequest) {
             "aws-vault exec ", 
             request.parameter_profile.unwrap_or_else(|| environment_profile.expect("No AWS_PROFILE set.")), 
             " -- ", 
-            request.parameter_command.unwrap().join(" ")
+            request.parameter_command.join(" ")
         )
     );
 }
@@ -111,7 +109,7 @@ mod tests {
             &mut spy,
             UserRequest {
                 parameter_profile: Some("sandbox").map(String::from),
-                parameter_command: Some(vec!("aws", "s3", "ls").into_iter().map(String::from).collect()),
+                parameter_command: vec!("aws", "s3", "ls").into_iter().map(String::from).collect(),
                 ..Default::default()
             }
         );
@@ -128,7 +126,7 @@ mod tests {
             &mut spy,
             UserRequest {
                 parameter_profile: Some("production").map(String::from),
-                parameter_command: Some(vec!("env").into_iter().map(String::from).collect()),
+                parameter_command: vec!("env").into_iter().map(String::from).collect(),
                 environment_profile: Some(String::from("live")),
                 ..Default::default()
             }
@@ -145,7 +143,7 @@ mod tests {
         execute(
             &mut spy,
             UserRequest {
-                parameter_command: Some(vec!("env").into_iter().map(String::from).collect()),
+                parameter_command: vec!("env").into_iter().map(String::from).collect(),
                 environment_profile: Some(String::from("live")),
                 ..Default::default()
             }
@@ -163,7 +161,7 @@ mod tests {
         execute(
             &mut spy,
             UserRequest {
-                parameter_command: Some(vec!("env").into_iter().map(String::from).collect()),
+                parameter_command: vec!("env").into_iter().map(String::from).collect(),
                 ..Default::default()
             }
         );
