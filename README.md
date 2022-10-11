@@ -1,4 +1,4 @@
-# aws-profile-vault ![Rust](https://github.com/craigjbass/aws-profile-vault/workflows/Rust/badge.svg?branch=master)
+# aws-profile-vault ![Rust](https://github.com/craigjbass/aws-profile-vault/workflows/Rust/badge.svg?branch=trunk)
 
 This is intended as a **drop in replacement**_ish_ (you'll need aws-vault too) for `aws-profile`.
 
